@@ -18,3 +18,7 @@ Contains monitoring scripts for MS SQL Server, grouped in solution
 Contains some scripts related to xEvent.
 monitoring*.sql : scripts generating to create an xEvent session to track long running queries/transactions, a job to create this session every day to timestamp the xel file, and an example of reading the xel file.
 
+## postgresql/utilities
+Some utilities related to the cache (extension pg_buffercache) or to get objects size.
+
+
