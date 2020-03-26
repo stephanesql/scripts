@@ -17,6 +17,11 @@ Contains monitoring scripts for MS SQL Server, grouped in solution
 Ensure to execute the tables/procedures/views creation scripts on a dedicated database (example: SYSDBA).
 Execute the job creation scripts on SQLCMD mode. Change the database parameter to the dedicated database (example: SYSDBA).
 
+## mssql/utilities
+Some utilities scripts :
+- Check_AAG.sql : check Always On Availability Group latency and status
+- data_growth.sql : get tables, indexes sizes and size related scripts
+
 ## mssql/xevent
 Contains some scripts related to xEvent.
 monitoring*.sql : scripts generating to create an xEvent session to track long running queries/transactions, a job to create this session every day to timestamp the xel file, and an example of reading the xel file.
