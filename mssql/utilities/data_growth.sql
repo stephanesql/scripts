@@ -113,41 +113,11 @@ SELECT object_schema_name(p.object_id) + '.' + object_name(p.object_id) as Table
         (CASE WHEN p.reserved_pages + isnull(e.reserved_pages, 0) > p.used_pages + isnull(e.used_pages, 0) THEN (p.reserved_pages + isnull(e.reserved_pages, 0) - p.used_pages + isnull(e.used_pages, 0)) else 0 end) /128 as unused_mb
 from pages p
 left outer join extra e on p.object_id = e.object_id
-where p.object_id = OBJECT_ID('dbo.vrr_ValorisationRubriqueReservation')
-or p.object_id = OBJECT_ID('dbo.vrt_ValorisationRubriqueReservationThematique')
-or p.object_id = OBJECT_ID('dbo.cae_Case')
-or p.object_id = OBJECT_ID('dbo.fca_FaitCase')
+where p.object_id = OBJECT_ID('dbo.table1')
+or p.object_id = OBJECT_ID('dbo.table2')
 
 
 /********************************************
-Taille sur Magellan
-
-VMPRDSPISQL50	MGLV1_PRD01
-**********************************************/
-SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
-go
-select --DATEPART(yyyy,HBA_DATE),  DATEPART(M,HBA_DATE),
-datename(mm,HBA_DATE)+' '+cast(datepart(yyyy,HBA_DATE) as varchar) as MonthYear,
-	CONVERT(DATE,CONCAT(DATEPART(yyyy, HBA_DATE), '-', DATEPART(mm, HBA_DATE), '-01')) as MonthYearDate
-, SER_NOM, BAS_NOM,
-SUM(HBA_SIZE) /COUNT(DISTINCT HBA_DATE) /1024 as 'size go' ,
-SUM(HBA_DATASPACEUSAGE +HBA_INDEXSPACEUSAGE + HBA_SPACEAVAILABLE)/COUNT(DISTINCT HBA_DATE) /1024  as 'Average Reserved Size GO', 
-SUM(HBA_DATASPACEUSAGE +HBA_INDEXSPACEUSAGE)/COUNT(DISTINCT HBA_DATE)/1024  as 'Average Monthly Data UsedSize GO ', 
-SUM(HBA_SIZE - (HBA_DATASPACEUSAGE + HBA_INDEXSPACEUSAGE + HBA_SPACEAVAILABLE  ))/COUNT(DISTINCT HBA_DATE) /1024 as 'Average Monthly Log UsedSize GO ' 
---,COUNT(DISTINCT HBA_DATE)  
-from HBA_BAS_HISTO HBH
-INNER JOIN  BAS_BASE BB on BB.BAS_ID=HBH.BAS_ID
-INNER JOIN [dbo].[INS_INSTANCE_APPLICATIVE] IIA on BB.INS_ID=IIA.INS_ID
-INNER JOIN SER_SERVEUR SS on IIA.SER_ID=SS.SER_ID
-WHERE SER_NOM LIKE 'TFPRD%'--in ('TFPRDDECSQL50', 'TFPRDDECSQL55', 'TFPRDDECSQL56', 'TFPRDOPTSQL37', 'TFPRDOPTSQL35')
-and bas_nom not like 'sysdba' 
-and HBA_DATE > '2014-01-01 00:00:00.000'
-and bas_actif = 1
-GROUP BY DATEPART(yyyy,HBA_DATE),DATEPART(M,HBA_DATE),
-DATENAME(m,HBA_DATE)+' '+cast(DATEPART(yyyy,HBA_DATE) as varchar), SER_NOM, BAS_NOM
-order by SER_NOM, BAS_NOM, DATEPART(yyyy,HBA_DATE),DATEPART(M,HBA_DATE)
-
-/**********************************************************
 Get duplicate indexes
 For covering indexes, change where clause with a LIKE
 Caution, the columns list also included columns.
@@ -511,7 +481,7 @@ select t.name, i.name as indexname, i.type_desc, i.is_primary_key, i.is_unique, 
 	inner join sys.index_columns ic on ic.object_id = i.object_id and ic.index_id = i.index_id
 	inner join sys.columns c on c.object_id = ic.object_id and ic.column_id = c.column_id
 	inner join sys.types ty on ty.system_type_id = c.system_type_id
-where t.name like '%reservation%'
+where t.name like '%sometablename%'
 order by t.name, i.index_id, ic.is_included_column, ic.key_ordinal
 
 go
@@ -522,7 +492,7 @@ from
 	sys.dm_db_index_usage_stats ius
 	inner join sys.indexes i on i.object_id = ius.object_id and ius.index_id = i.index_id
 	inner join sys.tables t on t.object_id = i.object_id
-where t.name like '%reservation%'
+where t.name like '%sometablename%'
 order by t.name, i.index_id
 
 select i.name as indexname, i.type_desc, i.is_primary_key, i.is_unique, c.name, c.is_nullable, c.is_identity
@@ -530,7 +500,7 @@ from
 	sys.indexes i
 	left outer join sys.index_columns ic on ic.index_id = i.index_id and ic.object_id = i.object_id
 	left outer join sys.columns c on c.column_id = ic.column_id and c.object_id = ic.object_id
-where i.object_id = object_id('dbo.isc_IndiceSaisonCampagne')
+where i.object_id = object_id('dbo.table1')
 
 /* ****************************************
 Files size and free space
@@ -591,7 +561,7 @@ select top 100 bs.database_name, bs.type, bs.backup_finish_date, convert(numeric
 		RIGHT('0' + CONVERT(VARCHAR(100),datediff(ss,bs.backup_start_date, bs.backup_finish_date) % 3600),2) as HoursMinutes
 from dbo.backupset bs
 	inner join dbo.backupmediafamily bmf on bmf.media_set_id = bs.media_set_id
-where bs.database_name = 'TF1Dalet_Prod' --and type = 'D'
+where bs.database_name = 'SomeDatabase' --and type = 'D'
 ORDER BY bs.backup_finish_date desc
 GO
 
@@ -607,16 +577,16 @@ SELECT @@SERVERNAME as servername, database_name, type, backup_start_date, backu
 	, CONVERT(numeric(10,2), compressed_backup_size/1024/1024) as compressed_backup_size_mb
 	, ROW_NUMBER() OVER(PARTITION BY database_name, type ORDER BY backup_start_date DESC) AS RN
 FROM dbo.backupset
-WHERE database_name in ('ADFV2_PRE01' , 'SITV1_PRE01', 'Echange', 'POK_RES')
+WHERE database_name in ('Database1' , 'Database2')
 ) x
 WHERE RN <= 10
 ORDER BY backup_finish_date DESC
 
 /******************
-Reads TF1 SQL trace
+Reads SQL trace
 ******************/
-select starttime as st1, eventclass as evt, duration/1000000 as duration_sec, reads*8/1024 as reads_mb, * from sys.fn_trace_gettable('D:\MSSQL\LOG\TFPRDDECSQL55_TRACE_SQL_20190829-00h00.trc', -1)
-where hostname = 'TFPRDMUTBOB11'
+select starttime as st1, eventclass as evt, duration/1000000 as duration_sec, reads*8/1024 as reads_mb, * from sys.fn_trace_gettable('D:\path_to_trc_file.trc', -1)
+where hostname = 'hostname'
 
 
 /**************
@@ -646,20 +616,7 @@ SELECT @alter_command = 'ALTER DATABASE [' + db_name() + '] MODIFY FILE (NAME = 
 PRINT @alter_command
 --EXEC sp_executesql @alter_command
 
-/*******************************
-MAGELLAN queries
-*******************************/
--- Get spaces used for database
-use MGLV1_PRD01
 go
-
-select TOP 1000 BAS_NOM, HBA_DATE, HBA_DATASPACEUSAGE, HBA_SIZE, HBA_SPACEAVAILABLE, HBA_INDEXSPACEUSAGE from dbo.HBA_BAS_HISTO h 
-	inner join dbo.BAS_BASE b on b.BAS_ID = h.BAS_ID
-where 
-	b.BAS_ACTIF = 1  and BAS_NOM = 'PE1' and ROL_CODE = 'PRD'
-ORDER BY HBA_DATE DESC
-GO
-
 
 /***************************************
 Misc queries
@@ -692,10 +649,10 @@ select
 	pr.name, pr.authentication_type_desc, CASE WHEN class_desc like 'OBJECT%' THEN object_name(dp.major_id) WHEN class_desc = 'SCHEMA' THEN schema_name(major_id) END as [object_name], dp.class_desc, dp.permission_name, dp.state_desc, dp.type
 from sys.database_permissions dp
 	inner join sys.database_principals pr on pr.principal_id = dp.grantee_principal_id
-where pr.name = 'TF1\S_REC_BXT'
+where pr.name = 'somedomain\someaccount'
 
 select rol.name as [role], grantee.name as [member]
 from sys.database_role_members drm
 	inner join sys.database_principals grantee on grantee.principal_id = drm.member_principal_id
 	inner join sys.database_principals rol on rol.principal_id = drm.role_principal_id
--- where grantee.name = 'TF1\S_REC_BXT'
+-- where grantee.name = 'somedomain\someaccount'

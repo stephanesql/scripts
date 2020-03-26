@@ -94,14 +94,6 @@ FROM cte_HADR
 WHERE data.value('(/event/data[@name=''error_number''])[1]','int') = 1480
 
 
-/***
-Restore db en recovery depuis les BACK full, diff et trn
-Changer le @chemin,0,0,1 (1 = scripter) en @chemin, 0,0,0 (exécuter)
-laisse la base en RECOVERY
-**/
-/*
-EXEC SYSDBA.[dbo].[sp_adm_restoredb_DIFF_LOGS] 'OPTV1_PRD001',@replica,@base,@chemin,0,0,1, 'TFPRDOPTSQL35_OPTV1_PRD001_FULL_A.BAK', 'TFPRDOPTSQL35_OPTV1_PRD001_FULL_B.BAK', 'TFPRDOPTSQL35_OPTV1_PRD001_FULL_C.BAK', 0,0,1
-*/
 go
 
 
