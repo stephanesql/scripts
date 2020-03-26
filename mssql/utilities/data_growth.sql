@@ -642,7 +642,7 @@ order by name
 /****************************************
 Permissions
 *****************************************/
-use DUJARDINV1_REC01
+use SomeDatabase 
 go
 
 select
