@@ -19,8 +19,10 @@ Execute the job creation scripts on SQLCMD mode. Change the database parameter t
 
 ## mssql/utilities
 Some utilities scripts :
+
 - Check_AAG.sql : check Always On Availability Group latency and status
 - data_growth.sql : get tables, indexes sizes and size related scripts
+
 
 ## mssql/xevent
 Contains some scripts related to xEvent.
