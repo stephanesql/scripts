@@ -283,7 +283,7 @@ FROM
 	inner join sys.types ty on ty.system_type_id = c.system_type_id
 WHERE
 	t.is_ms_shipped = 0
-	--AND t.object_id = OBJECT_ID('dbo.fre_rpa_RevenueParAnnonceur')
+	--AND t.object_id = OBJECT_ID('dbo.table1')
 GROUP BY t.object_id
 )
 , pages as (
