@@ -14,3 +14,7 @@ Contains monitoring scripts for MS SQL Server, grouped in solution
 ||wait_stats_monitoring_job.sql|Create a job calling the procedure in wait_stats_monitoring.sql every 30 min and purge data older than 1 month|
 |IO file stats and Wait stats|io_file_stats.pbix|Power BI to visualize the recorded data (IO file stats and Wait events)|
 
+## mssql/xevent
+Contains some scripts related to xEvent.
+monitoring*.sql : scripts generating to create an xEvent session to track long running queries/transactions, a job to create this session every day to timestamp the xel file, and an example of reading the xel file.
+
