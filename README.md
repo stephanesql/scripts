@@ -14,8 +14,10 @@ Contains monitoring scripts for MS SQL Server, grouped in solution
 ||wait_stats_monitoring_job.sql|Create a job calling the procedure in wait_stats_monitoring.sql every 30 min and purge data older than 1 month|
 |IO file stats and Wait stats|io_file_stats.pbix|Power BI to visualize the recorded data (IO file stats and Wait events)|
 
-Ensure to execute the tables/procedures/views creation scripts on a dedicated database (example: SYSDBA).
-Execute the job creation scripts on SQLCMD mode. Change the database parameter to the dedicated database (example: SYSDBA).
+
+* Ensure to execute the tables/procedures/views creation scripts on a dedicated database (example: SYSDBA).
+* Execute the job creation scripts on SQLCMD mode. Change the database parameter to the dedicated database (example: SYSDBA).
+
 
 ## mssql/utilities
 Some utilities scripts :
