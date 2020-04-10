@@ -1,6 +1,14 @@
 /*
-Useful queries bases on pg_catalog to get some informations
+Useful queries bases on pg_catalog to get some informations helping for analyzing performance problems
 */
+
+-- how many connections
+select count(*) from pg_stat_activity;
+
+select count(*), datname from pg_stat_activity group by datname;
+
+select count(*), state from pg_stat_activity group by state;
+
 
 -- What is cluster max connection
 select name, setting, unit from pg_settings where name = 'max_connections';
