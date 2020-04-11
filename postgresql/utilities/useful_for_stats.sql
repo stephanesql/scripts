@@ -38,6 +38,6 @@ select schemaname,relname,indexrelname
 	, idx_tup_read, idx_tup_fetch
 	, pg_size_pretty(pg_relation_size(schemaname || '.' || indexrelname)) as size 
 from pg_stat_user_indexes  
-where idx_scan <= 100 
+where idx_scan <= 100 -- or 0
 order by idx_scan, size desc;
 
