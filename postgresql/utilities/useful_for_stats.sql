@@ -31,3 +31,13 @@ select schemaname, relname, n_live_tup, n_dead_tup, CASE WHEN n_live_tup + n_dea
 from pg_stat_user_tables
 order by vacuum_ratio desc nulls last;
 
+
+-- not used indexes
+select schemaname,relname,indexrelname
+	, idx_scan
+	, idx_tup_read, idx_tup_fetch
+	, pg_size_pretty(pg_relation_size(schemaname || '.' || indexrelname)) as size 
+from pg_stat_user_indexes  
+where idx_scan <= 100 
+order by idx_scan, size desc;
+
