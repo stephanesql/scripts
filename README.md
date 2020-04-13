@@ -35,6 +35,6 @@ monitoring*.sql : scripts generating to create an xEvent session to track long r
 |Script|Description|
 |-----|-----|
 |buffer_cache.sql|Some utilities related to the cache (extension pg_buffercache) or to get objects size.|
-|useful_for_stats.sql|pg_catalog statistics' uUseful queries|
+|useful_for_stats.sql|pg_catalog statistics' useful queries|
 
 
