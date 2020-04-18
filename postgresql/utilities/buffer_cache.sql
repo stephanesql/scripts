@@ -223,9 +223,9 @@ order by size desc;
 Bloat estimation from 
 https://github.com/ioguix/pgsql-bloat-estimation/blob/master/btree/btree_bloat-8.0-8.1.sql
 *****************************/
-SELECT current_database(), nspname AS schemaname, tblname, idxname, bs*(sub.relpages)::bigint AS real_size,
-  bs*est_pages::bigint as estimated_size,
-  bs*(sub.relpages-est_pages)::bigint AS bloat_size,
+SELECT current_database(), nspname AS schemaname, tblname, idxname, pg_size_pretty(bs*(sub.relpages)::bigint) AS real_size,
+  pg_size_pretty(bs*est_pages::bigint) as estimated_size,
+  pg_size_pretty(bs*(sub.relpages-est_pages)::bigint) AS bloat_size,
   round(100.0 * (sub.relpages-est_pages)::numeric/ sub.relpages, 1) AS bloat_ratio, is_na
   -- , est_pages, index_tuple_hdr_bm, maxalign, pagehdr, nulldatawidth, nulldatahdrwidth, sub.reltuples, sub.relpages -- (DEBUG INFO)
 FROM (
