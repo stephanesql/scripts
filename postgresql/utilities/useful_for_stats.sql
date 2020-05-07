@@ -41,3 +41,62 @@ from pg_stat_user_indexes
 where idx_scan <= 100 -- or 0
 order by idx_scan, size desc;
 
+
+
+-- Get long running sessions
+SELECT pid, age(clock_timestamp(), query_start), usename, substring(query,0,50) as query, state
+FROM pg_stat_activity 
+WHERE 
+-- query != '<IDLE>' AND
+ pid <> pg_backend_pid()
+--AND query NOT ILIKE '%pg_stat_activity%'
+AND state <> 'idle' -- not idle sessions
+ORDER BY query_start desc;
+
+
+/**
+Cache hit ratios. 
+Used statistics are from last reset. 
+**/
+
+-- Check Buffer cache hit ratio
+SELECT sum(heap_blks_read) as heap_read, sum(heap_blks_hit)  as heap_hit, --(sum(heap_blks_hit) - sum(heap_blks_read)) / sum(heap_blks_hit) as ratio
+round(100.0 * sum(heap_blks_hit) / (sum(heap_blks_read) + sum(heap_blks_hit)),2) as ratio
+FROM pg_statio_user_tables;
+
+-- for databases
+select db.datname, d.blks_read, d.blks_hit, case when d.blks_hit + d.blks_read > 0 then  round(100.0 * d.blks_hit / (d.blks_hit+d.blks_read),2) end as blks_hit_ratio from pg_stat_database d inner join pg_database db on db.oid = d.datid;
+
+
+-- For all tables
+with 
+all_tables as
+(
+SELECT  *
+FROM    (
+    SELECT  'all'::text as table_name, 
+        sum( (coalesce(heap_blks_read,0) + coalesce(idx_blks_read,0) + coalesce(toast_blks_read,0) + coalesce(tidx_blks_read,0)) ) as from_disk, 
+        sum( (coalesce(heap_blks_hit,0)  + coalesce(idx_blks_hit,0)  + coalesce(toast_blks_hit,0)  + coalesce(tidx_blks_hit,0))  ) as from_cache    
+    FROM    pg_statio_all_tables  --> change to pg_statio_USER_tables if you want to check only user tables (excluding postgres's own tables)
+    ) a
+WHERE   (from_disk + from_cache) > 0 -- discard tables without hits
+),
+tables as 
+(
+SELECT  *
+FROM    (
+    SELECT  relname as table_name, 
+        ( (coalesce(heap_blks_read,0) + coalesce(idx_blks_read,0) + coalesce(toast_blks_read,0) + coalesce(tidx_blks_read,0)) ) as from_disk, 
+        ( (coalesce(heap_blks_hit,0)  + coalesce(idx_blks_hit,0)  + coalesce(toast_blks_hit,0)  + coalesce(tidx_blks_hit,0))  ) as from_cache    
+    FROM    pg_statio_all_tables --> change to pg_statio_USER_tables if you want to check only user tables (excluding postgres's own tables)
+    ) a
+WHERE   (from_disk + from_cache) > 0 -- discard tables without hits
+)
+SELECT  table_name as "table name",
+    from_disk as "disk hits",
+    round((from_disk::numeric / (from_disk + from_cache)::numeric)*100.0,2) as "% disk hits",
+    round((from_cache::numeric / (from_disk + from_cache)::numeric)*100.0,2) as "% cache hits",
+    (from_disk + from_cache) as "total hits"
+FROM    (SELECT * FROM all_tables UNION ALL SELECT * FROM tables) a
+ORDER   BY (case when table_name = 'all' then 0 else 1 end), from_disk desc;
+

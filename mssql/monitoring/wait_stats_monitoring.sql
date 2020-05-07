@@ -4,6 +4,13 @@ Records waits events
 Create a job executing the procedure every hour.
 */
 
+IF NOT EXISTS(SELECT 1 FROM sys.schemas WHERE name = 'monitor')
+BEGIN
+    PRINT N'Creating schema monitor'
+    EXEC ('CREATE SCHEMA monitor;')
+END
+GO
+
 IF EXISTS(SELECT 1 FROM sys.tables WHERE object_id = OBJECT_ID('monitor.wait_stats'))
 BEGIN
 	PRINT N'Drop table monitor.wait_stats'
