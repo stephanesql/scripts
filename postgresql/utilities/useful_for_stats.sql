@@ -100,3 +100,32 @@ SELECT  table_name as "table name",
 FROM    (SELECT * FROM all_tables UNION ALL SELECT * FROM tables) a
 ORDER   BY (case when table_name = 'all' then 0 else 1 end), from_disk desc;
 
+-- simpler version (it doesn't use the toast blks reads/hits)
+SELECT
+    schemaname, relname, from_disk, from_cache
+    , case when from_disk + from_cache > 0 then round(100.0 * from_disk / (from_cache + from_disk),2) end as cache_hit_ratio
+    , case when (index_from_disk + index_from_cache) > 0 then round(100.0 * index_from_cache / (index_from_disk + index_from_cache), 2) end as index_hit_ratio
+FROM
+(
+SELECT schemaname, relname, 1 as order
+    ,  (heap_blks_read + coalesce(idx_blks_read,0)) as from_disk
+    ,  (heap_blks_hit + coalesce(idx_blks_hit,0))  as from_cache
+    , coalesce(idx_blks_read,0) as index_from_disk, coalesce(idx_blks_hit, 0) as index_from_cache
+FROM
+    pg_statio_user_tables
+UNION ALL
+SELECT '-ALL-', '-ALL-', 0 as order
+    ,  SUM(heap_blks_read + coalesce(idx_blks_read,0)) as from_disk
+    ,  SUM(heap_blks_hit + coalesce(idx_blks_hit,0))  as from_cache
+    , SUM(coalesce(idx_blks_read,0)) as index_from_disk, SUM(coalesce(idx_blks_hit, 0)) as index_from_cache
+FROM
+    pg_statio_user_tables
+) x
+ORDER BY x.order, cache_hit_ratio DESC NULLS LAST;
+
+
+
+-- Blks reads by milli-seconds
+select datname, case when sum(blk_read_time) > 0 then sum(blks_read)/sum(blk_read_time)end from pg_stat_database group by datname;
+
+
