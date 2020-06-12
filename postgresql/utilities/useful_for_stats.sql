@@ -103,7 +103,7 @@ ORDER   BY (case when table_name = 'all' then 0 else 1 end), from_disk desc;
 -- simpler version (it doesn't use the toast blks reads/hits)
 SELECT
     schemaname, relname, from_disk, from_cache
-    , case when from_disk + from_cache > 0 then round(100.0 * from_disk / (from_cache + from_disk),2) end as cache_hit_ratio
+    , case when from_disk + from_cache > 0 then round(100.0 * from_cache / (from_cache + from_disk),2) end as cache_hit_ratio
     , case when (index_from_disk + index_from_cache) > 0 then round(100.0 * index_from_cache / (index_from_disk + index_from_cache), 2) end as index_hit_ratio
 FROM
 (
